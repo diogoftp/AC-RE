@@ -8,6 +8,7 @@ DWORD WINAPI LoopThread(HMODULE hModule) {
 
 	uintptr_t gameBase = (uintptr_t)GetModuleHandle(L"ac_client.exe");
 	uintptr_t localPlayer = *(uintptr_t*)(gameBase + 0x10f4f4);
+	uintptr_t entityList = *(uintptr_t*)(gameBase + 0x10f4f8);
 
 	while (!GetAsyncKeyState(VK_INSERT)) {
 		int health = *(int*)(localPlayer + 0xF8);
@@ -24,6 +25,21 @@ DWORD WINAPI LoopThread(HMODULE hModule) {
 		std::cout << "ammo: " << ammo << std::endl;
 		std::cout << "name: " << name << std::endl;
 		std::cout << "position: (" << myX << ", " << myY << ", " << myZ << ")" << std::endl;
+
+		int playerNum = *(int*)(gameBase + 0x10F500);
+		std::cout << "playerNum: " << playerNum << std::endl;
+
+		int index;
+		void* entity = NULL;
+		for (index = 1; index < playerNum; index++) {
+			uintptr_t entity = *(uintptr_t*)(entityList + 0x4 * index);
+			if (!entity) continue;
+			int entityHealth = *(int*)(entity + 0xF8);
+			char* entityName = (char*)(entity + 0x225);
+			std::ios_base::fmtflags f(std::cout.flags());
+			std::cout << "Name: " << std::left << std::setw(20) << entityName << " Health: " << entityHealth << std::endl;
+			std::cout.flags(f);
+		}
 
 		Sleep(50);
 	}
