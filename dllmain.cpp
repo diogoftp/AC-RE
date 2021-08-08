@@ -1,5 +1,7 @@
 #include "pch.h"
+#include "structs.hpp"
 #include <iostream>
+#include <string>
 
 DWORD WINAPI LoopThread(HMODULE hModule) {
 	AllocConsole();
@@ -7,38 +9,37 @@ DWORD WINAPI LoopThread(HMODULE hModule) {
 	freopen_s(&f, "CONOUT$", "w", stdout);
 
 	uintptr_t gameBase = (uintptr_t)GetModuleHandle(L"ac_client.exe");
-	uintptr_t localPlayer = *(uintptr_t*)(gameBase + 0x10f4f4);
-	uintptr_t entityList = *(uintptr_t*)(gameBase + 0x10f4f8);
+	Entity* localPlayer = *(Entity**)(gameBase + Offsets::localPlayer);
+	uintptr_t entityList = *(uintptr_t*)(gameBase + Offsets::entityList);
 
 	while (!GetAsyncKeyState(VK_INSERT)) {
-		int health = *(int*)(localPlayer + 0xF8);
-		int ammo = *(int*)(localPlayer + 0x150);
-		char* name = (char*)(localPlayer + 0x225);
-		float myX = *(float*)(localPlayer + 0x4);
-		float myY = *(float*)(localPlayer + 0x8);
-		float myZ = *(float*)(localPlayer + 0xC);
+		int playerNum = *(int*)(gameBase + Offsets::playerNum);
 
 		system("cls");
-		std::cout << "gameBase: " << std::hex << gameBase << std::dec << std::endl;
-		std::cout << "localPlayer: " << std::hex << localPlayer << std::dec << std::endl;
-		std::cout << "health: " << health << std::endl;
-		std::cout << "ammo: " << ammo << std::endl;
-		std::cout << "name: " << name << std::endl;
-		std::cout << "position: (" << myX << ", " << myY << ", " << myZ << ")" << std::endl;
+		std::cout << "Number of players: " << playerNum << std::endl;
+		std::cout << "localPlayer:" << std::endl;
+		std::cout << "\tName: " << localPlayer->name << std::endl;
+		std::cout << "\tHealth: " << localPlayer->health << std::endl;
+		std::cout << "\tAmmo: " << localPlayer->ammo << std::endl;
+		std::cout << "\tPosition: " << localPlayer->pos.toString() << std::endl;
 
-		int playerNum = *(int*)(gameBase + 0x10F500);
-		std::cout << "playerNum: " << playerNum << std::endl;
+		if (localPlayer->ammo < 5) localPlayer->ammo = 20;
 
+		std::cout << "Entities:" << std::endl;
 		int index;
-		void* entity = NULL;
 		for (index = 1; index < playerNum; index++) {
-			uintptr_t entity = *(uintptr_t*)(entityList + 0x4 * index);
+			Entity* entity = *(Entity**)(entityList + 0x4 * index);
 			if (!entity) continue;
-			int entityHealth = *(int*)(entity + 0xF8);
-			char* entityName = (char*)(entity + 0x225);
 			std::ios_base::fmtflags f(std::cout.flags());
-			std::cout << "Name: " << std::left << std::setw(20) << entityName << " Health: " << entityHealth << std::endl;
+			std::cout << "Name: " << std::left << std::setw(20) << entity->name;
 			std::cout.flags(f);
+			f = (std::cout.flags());
+			std::cout << " Health: " << std::left << std::setw(3) << entity->health;
+			std::cout.flags(f);
+			f = (std::cout.flags());
+			std::cout << " Ammo: " << std::left << std::setw(3) << entity->ammo;
+			std::cout.flags(f);
+			std::cout << " Position: " << entity->pos.toString() << std::endl;
 		}
 
 		Sleep(50);
