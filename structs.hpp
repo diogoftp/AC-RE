@@ -23,6 +23,8 @@ public:
 	Vec3 operator*(const Vec3& vec);
 	Vec3 operator/(const Vec3& vec);
 	Vec3 operator=(const Vec3& vec);
+
+	float dist(Vec3 target);
 };
 
 class Entity_old {
@@ -41,8 +43,11 @@ class Entity {
 public:
 	union {
 		DEFINE_MEMBER_N(Vec3 pos, Offsets::pos);
+		DEFINE_MEMBER_N(Vec3 head, Offsets::head);
 		DEFINE_MEMBER_N(int health, Offsets::health);
 		DEFINE_MEMBER_N(int ammo, Offsets::ammo);
 		DEFINE_MEMBER_N(char name[32], Offsets::name);
+		DEFINE_MEMBER_N(float viewAngles[2], Offsets::viewAngles);
+		DEFINE_MEMBER_N(float eyeHeight, Offsets::eyeHeight);
 	};
 };

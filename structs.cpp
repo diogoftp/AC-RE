@@ -21,6 +21,10 @@ Vec3::Vec3(float* ptr) {
 	z = ptr[2];
 }
 
+float Vec3::dist(Vec3 target) {
+	return sqrt(pow(x - target.x, 2) + pow(y - target.y, 2) + pow(z - target.z, 2));
+}
+
 std::string Vec3::toString() const {
 	std::ostringstream output;
 	output << "(" << x << ", " << y << ", " << z << ")";

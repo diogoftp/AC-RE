@@ -29,7 +29,7 @@ char* tramp32(void* targetAddr, void* myFunc, const int len) {
 
 	intptr_t gatewayRelativeAddr = ((intptr_t)targetAddr - (intptr_t)gateway) - 5;
 
-	*(char*)((intptr_t)gateway + len) = 0xE9;
+	*(unsigned char*)((intptr_t)gateway + len) = 0xE9;
 
 	*(intptr_t*)((intptr_t)gateway + len + 1) = gatewayRelativeAddr;
 

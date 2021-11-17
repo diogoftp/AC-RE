@@ -156,15 +156,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="esp.hpp" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="funcs.hpp" />
     <ClInclude Include="hooks.hpp" />
     <ClInclude Include="offsets.hpp" />
+    <ClInclude Include="opengl.hpp" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="structs.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="esp.cpp" />
+    <ClCompile Include="funcs.cpp" />
     <ClCompile Include="hooks.cpp" />
+    <ClCompile Include="opengl.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

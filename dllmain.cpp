@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "structs.hpp"
 #include "hooks.hpp"
+#include "opengl.hpp"
+#include "funcs.hpp"
+#include "esp.hpp"
 #include <iostream>
 #include <string>
 
@@ -32,16 +35,38 @@ void __declspec(naked) wglSwapBuffersTrampoline() {
 	}
 }*/
 
+GL::Font glFont;
+uintptr_t gameBase = (uintptr_t)GetModuleHandle(L"ac_client.exe");
+
 typedef int(__stdcall* twglSwapBuffers)(HDC hDC);
 twglSwapBuffers owglSwapBuffers;
 int __stdcall hwglSwapBuffers(HDC hDC) {
-	std::cout << "Hooked" << std::endl;
-	__asm {
-		nop
-		nop
-		nop
-		nop
+	HDC currentHDC = wglGetCurrentDC();
+	if (!glFont.bBuilt || currentHDC != glFont.hdc) {
+		glFont.Build(ESP_FONT_WIDTH, ESP_FONT_HEIGHT);
 	}
+
+	GL::SetupOrtho();
+
+	Entity* localPlayer = *(Entity**)(gameBase + Offsets::localPlayer);
+	int playerNum = *(int*)(gameBase + Offsets::playerNum);
+	uintptr_t entityList = *(uintptr_t*)(gameBase + Offsets::entityList);
+	float* viewMatrix = (float*)(gameBase + Offsets::viewMatrix);
+	int viewPort[4];
+	glGetIntegerv(GL_VIEWPORT, viewPort);
+	int index;
+	for (index = 1; index < playerNum; index++) {
+		Entity* entity = *(Entity**)(entityList + 0x4 * index);
+		if (!entity) continue;
+		Vec3 screen;
+		Vec3 entpos = entity->head;
+		entpos.z += 0.75f;
+		if (W2S(entpos, screen, viewMatrix, viewPort[2], viewPort[3])) {
+			DrawESP(localPlayer, entity, viewPort, screen, glFont);
+		}
+	}
+
+	GL::RestoreGL();
 	return owglSwapBuffers(hDC);
 }
 
@@ -50,7 +75,6 @@ DWORD WINAPI LoopThread(HMODULE hModule) {
 	FILE* f;
 	freopen_s(&f, "CONOUT$", "w", stdout);
 
-	uintptr_t gameBase = (uintptr_t)GetModuleHandle(L"ac_client.exe");
 	Entity* localPlayer = *(Entity**)(gameBase + Offsets::localPlayer);
 	uintptr_t entityList = *(uintptr_t*)(gameBase + Offsets::entityList);
 
@@ -86,6 +110,23 @@ DWORD WINAPI LoopThread(HMODULE hModule) {
 			else damageHook->unHook();
 			if (!drawHook->active) owglSwapBuffers = (twglSwapBuffers)drawHook->tramp();
 			else drawHook->unHook();
+		}
+
+		if (GetAsyncKeyState(0x12)) {
+			int index;
+			for (index = 1; index < playerNum; index++) {
+				Entity* entity = *(Entity**)(entityList + 0x4 * index);
+				if (!entity) continue;
+				// get closest enemy
+				Vec3 screen;
+				int viewport[4];
+				glGetIntegerv(GL_VIEWPORT, viewport);
+				float* matrix = (float*)(gameBase + Offsets::viewMatrix);
+				if (W2S(entity->head, screen, matrix, viewport[2], viewport[3])) {
+					// do aimbot
+				}
+				break;
+			}
 		}
 
 		std::cout << "Entities:" << std::endl;
